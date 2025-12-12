@@ -18,13 +18,14 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
     private var gameThread: GameThread? = null
     private lateinit var gameOver: GameOver
 
+    private var difficultyFactor = 1f
     private val survivalTimer = SurvivalTimer()
     private val timerPaint = android.graphics.Paint().apply {
         color = android.graphics.Color.WHITE
         textSize = 80f
         typeface = android.graphics.Typeface.DEFAULT_BOLD
     }
-
+    private lateinit var soundManager: SoundManager
     // Fondo
     private lateinit var bgBitmap: Bitmap
     private var screenW = 0
@@ -60,6 +61,10 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
         screenW = width
         screenH = height
 
+        //MUSICA
+        soundManager = SoundManager(context)
+        soundManager.startMusic()
+
         //referenciamos a la imagen en drawable/
         val goBmp = BitmapFactory.decodeResource(resources, R.drawable.game_over01)
         gameOver = GameOver(goBmp, screenW, screenH)
@@ -93,6 +98,8 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         var retry = true
         gameThread?.running = false
+        //Paramos la musica
+        soundManager.stopAndRelease()
         while (retry) {
             try {
                 gameThread?.join()
@@ -134,6 +141,10 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
             return
         }
 
+        // aumenta la dificultad con el tiempo
+        val t = survivalTimer.seconds
+        difficultyFactor = 1f + 0.2f * (t / 10)
+
         // Spawn periódico de bombas
         bombSpawnTimer += deltaSec
         if (bombSpawnTimer >= bombSpawnInterval) {
@@ -144,7 +155,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
                 bombBmp,
                 screenW,
                 screenH,
-                speed = 600f
+                speed = 600f*difficultyFactor
             )
             bombs.add(bomb)
         }
@@ -162,6 +173,8 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
                 isGameOver = true
                 bomb.active = false
                 explosion.trigger(goblin.x, goblin.y)
+                //Sonido de explosion
+                soundManager.playExplosion()
                 break
             }
         }
@@ -192,8 +205,9 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
             timerPaint
         )
     }
-
+    //Evento de colision bomba-goblin
     override fun onTouchEvent(event: MotionEvent): Boolean {
+
         if (isGameOver) return true
 
         if (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE) {
@@ -204,15 +218,18 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
                 goblin.moveRight(step)
             }
         }
-
         return true
     }
 
     fun pause() {
         gameThread?.running = false
+        //pausamos musica
+        soundManager.pauseMusic()
     }
 
     fun resume() {
+        //continuamos la musica
+        soundManager.startMusic()
         if (holder.surface.isValid && (gameThread == null || !gameThread!!.isAlive)) {
             gameThread = GameThread(holder, this).also {
                 lastTime = System.nanoTime()
