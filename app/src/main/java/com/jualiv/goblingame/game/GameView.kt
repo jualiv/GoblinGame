@@ -18,6 +18,13 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
     private var gameThread: GameThread? = null
     private lateinit var gameOver: GameOver
 
+    private val survivalTimer = SurvivalTimer()
+    private val timerPaint = android.graphics.Paint().apply {
+        color = android.graphics.Color.WHITE
+        textSize = 80f
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
+
     // Fondo
     private lateinit var bgBitmap: Bitmap
     private var screenW = 0
@@ -33,7 +40,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
 
     // Spawn de bombas
     private var bombSpawnTimer = 0f
-    private val bombSpawnInterval = 3f   // segundos entre bombas
+    private val bombSpawnInterval = 2f   // segundos entre bombas
 
     // Tiempo
     private var lastTime = System.nanoTime()
@@ -49,6 +56,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        survivalTimer.start()
         screenW = width
         screenH = height
 
@@ -104,6 +112,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
 
     // Llamado desde GameThread en cada frame
     fun update() {
+        survivalTimer.update()
         val now = System.nanoTime()
         val deltaSec = (now - lastTime) / 1_000_000_000f
         lastTime = now
@@ -175,6 +184,13 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
 
         // GameOver
         gameOver.draw(canvas)
+
+        canvas.drawText(
+            "Tiempo: ${survivalTimer.seconds}s",
+            80f,
+            120f,
+            timerPaint
+        )
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -188,6 +204,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
                 goblin.moveRight(step)
             }
         }
+
         return true
     }
 
