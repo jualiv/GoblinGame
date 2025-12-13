@@ -91,5 +91,6 @@ El jugador controla a un goblin situado en la parte inferior de la pantalla y se
 
 ## Capturas de pantalla
 
-![Menú principal]
-![Gameplay]
+![Menú principal](images/menu.png)
+![Gameplay](images/gameplay.png)
+![Game  Over](images/game_over.png)
