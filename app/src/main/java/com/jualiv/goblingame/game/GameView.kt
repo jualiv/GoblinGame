@@ -114,7 +114,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
         width: Int,
         height: Int
     ) {
-        // No usado de momento
+    //no lo necesitamos, lo dejamos vacío porque es necesario implementarlo en la interfaz.
     }
 
     // Llamado desde GameThread en cada frame
@@ -141,7 +141,7 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
             return
         }
 
-        // aumenta la dificultad con el tiempo
+        // aumentar la dificultad con el tiempo
         val t = survivalTimer.seconds
         difficultyFactor = 1f + 0.2f * (t / 10)
 
@@ -201,11 +201,11 @@ class GameView(context: Context) : SurfaceView(context), SurfaceHolder.Callback 
         canvas.drawText(
             "Tiempo: ${survivalTimer.seconds}s",
             80f,
-            120f,
+            190f,
             timerPaint
         )
     }
-    //Evento de colision bomba-goblin
+    //Control tactil del goblin
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
         if (isGameOver) return true
